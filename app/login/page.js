@@ -31,6 +31,8 @@ function LoginForm() {
         return;
       }
 
+      localStorage.setItem("hrms_token", data.token);
+      localStorage.setItem("hrms_user", JSON.stringify(data.user));
       router.push("/dashboard");
     } catch (err) {
       setError("Connection error. Please try again.");
@@ -92,9 +94,9 @@ function LoginForm() {
 
         <div className="login-hint">
           <strong>Demo Credentials:</strong><br />
-          Admin: admin@company.com / admin123<br />
-          HR: hr@company.com / hr123<br />
-          Employee: john@company.com / john123
+          HR: hr@hrms.com / admin123<br />
+          Employee: alice@hrms.com / emp123<br />
+          Employee: bob@hrms.com / emp123
         </div>
       </div>
     </div>
