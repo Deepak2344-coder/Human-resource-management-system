@@ -1,116 +1,97 @@
 "use client";
 
-import { useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-function LoginForm() {
+export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const registered = searchParams.get("registered");
 
-  async function handleSubmit(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    if (!email.trim()) { setError("Email is required"); return; }
+    if (!password) { setError("Password is required"); return; }
 
+    setLoading(true);
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-
       const data = await res.json();
-
       if (!res.ok) {
         setError(data.error || "Login failed");
         return;
       }
-
-      localStorage.setItem("hrms_token", data.token);
-      localStorage.setItem("hrms_user", JSON.stringify(data.user));
       router.push("/dashboard");
-    } catch (err) {
-      setError("Connection error. Please try again.");
-    } finally {
-      setLoading(false);
+    } catch {
+      setError("Connection error");
     }
-  }
+    setLoading(false);
+  };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <h1>HRMS Portal</h1>
-        <p>Sign in to your account</p>
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-sm">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-heading font-bold text-text-primary tracking-tight">HRMS</h1>
+          <p className="text-sm text-text-muted mt-1">Sign in to your account</p>
+        </div>
 
-        {registered === "true" && (
-          <div style={{ background: "#d1fae5", color: "#065f46", padding: "10px 14px", borderRadius: "var(--radius)", fontSize: 13, marginBottom: 16 }}>
-            Account created successfully! Sign in with your credentials.
-          </div>
-        )}
+        <form onSubmit={handleSubmit} className="bg-dark-surface border border-dark-border rounded-xl p-6 space-y-4">
+          {error && (
+            <div className="text-sm text-status-absent bg-status-absent/10 rounded-lg px-3 py-2">{error}</div>
+          )}
 
-        {error && <div className="login-error">{error}</div>}
-
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1.5">Email</label>
             <input
-              id="email"
               type="email"
-              className="input"
-              placeholder="you@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
+              placeholder="you@company.com"
+              className="w-full px-4 py-2.5 bg-dark-bg border border-dark-border rounded-lg text-sm text-text-primary placeholder-text-muted outline-none focus:border-accent transition-colors"
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1.5">Password</label>
             <input
-              id="password"
               type="password"
-              className="input"
-              placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
+              placeholder="••••••••"
+              className="w-full px-4 py-2.5 bg-dark-bg border border-dark-border rounded-lg text-sm text-text-primary placeholder-text-muted outline-none focus:border-accent transition-colors"
             />
           </div>
 
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? "Signing in..." : "Sign In"}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2.5 rounded-lg bg-accent text-white font-medium text-sm hover:bg-accent-hover transition-colors disabled:opacity-50"
+          >
+            {loading ? "Signing in…" : "Sign in"}
           </button>
+
+          <p className="text-center text-xs text-text-muted">
+            Don&apos;t have an account?{" "}
+            <Link href="/signup" className="text-accent hover:underline">Sign up</Link>
+          </p>
         </form>
 
-        <p style={{ textAlign: "center", marginTop: 20, fontSize: 14 }}>
-          Don't have an account?{" "}
-          <a href="/signup" style={{ color: "var(--primary)", fontWeight: 600 }}>Sign up</a>
-        </p>
-
-        <div className="login-hint">
-          <strong>Demo Credentials:</strong><br />
-          HR: hr@hrms.com / admin123<br />
-          Employee: alice@hrms.com / emp123<br />
-          Employee: bob@hrms.com / emp123
+        <div className="mt-4 bg-dark-surface/50 border border-dark-border rounded-xl p-3">
+          <p className="text-xs text-text-muted font-medium mb-1">Demo credentials:</p>
+          <p className="text-xs text-text-muted font-mono">Employee: john@company.com / john123</p>
+          <p className="text-xs text-text-muted font-mono">HR: hr@company.com / hr123</p>
+          <p className="text-xs text-text-muted font-mono">Admin: admin@company.com / admin123</p>
         </div>
       </div>
     </div>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={
-      <div className="login-container">
-        <div className="login-card"><p>Loading...</p></div>
-      </div>
-    }>
-      <LoginForm />
-    </Suspense>
   );
 }
